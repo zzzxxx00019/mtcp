@@ -467,7 +467,7 @@ onvm_dev_ioctl(struct mtcp_thread_context *ctx, int nif, int cmd, void *argp)
 			goto dev_ioctl_err;
 		m = dpc->wmbufs[eidx].m_table[len_of_mbuf - 1];
 		m->ol_flags = PKT_TX_IP_CKSUM | PKT_TX_IPV4;
-		m->l2_len = sizeof(struct ether_hdr);
+		m->l2_len = sizeof(struct rte_ether_hdr);
 		m->l3_len = (iph->ihl<<2);
 		break;
 	case PKT_TX_TCP_CSUM:
@@ -476,7 +476,7 @@ onvm_dev_ioctl(struct mtcp_thread_context *ctx, int nif, int cmd, void *argp)
 		m = dpc->wmbufs[eidx].m_table[len_of_mbuf - 1];
 		tcph = (struct tcphdr *)((unsigned char *)iph + (iph->ihl<<2));
 		m->ol_flags |= PKT_TX_TCP_CKSUM;
-		tcph->check = rte_ipv4_phdr_cksum((struct ipv4_hdr *)iph, m->ol_flags);
+		tcph->check = rte_ipv4_phdr_cksum((struct rte_ipv4_hdr *)iph, m->ol_flags);
 		break;
 #ifdef ENABLELRO
 	case PKT_RX_TCP_LROSEG:
@@ -511,13 +511,13 @@ onvm_dev_ioctl(struct mtcp_thread_context *ctx, int nif, int cmd, void *argp)
 		if ((dev_info[nif].tx_offload_capa & DEV_TX_OFFLOAD_TCP_CKSUM) == 0)
 			goto dev_ioctl_err;
 		m = dpc->wmbufs[eidx].m_table[len_of_mbuf - 1];
-		iph = rte_pktmbuf_mtod_offset(m, struct iphdr *, sizeof(struct ether_hdr));
+		iph = rte_pktmbuf_mtod_offset(m, struct iphdr *, sizeof(struct rte_ether_hdr));
 		tcph = (struct tcphdr *)((uint8_t *)iph + (iph->ihl<<2));
-		m->l2_len = sizeof(struct ether_hdr);
+		m->l2_len = sizeof(struct rte_ether_hdr);
 		m->l3_len = (iph->ihl<<2);
 		m->l4_len = (tcph->doff<<2);
 		m->ol_flags = PKT_TX_TCP_CKSUM | PKT_TX_IP_CKSUM | PKT_TX_IPV4;
-		tcph->check = rte_ipv4_phdr_cksum((struct ipv4_hdr *)iph, m->ol_flags);
+		tcph->check = rte_ipv4_phdr_cksum((struct rte_ipv4_hdr *)iph, m->ol_flags);
 		break;
 	case PKT_RX_IP_CSUM:
 		if ((dev_info[nif].rx_offload_capa & DEV_RX_OFFLOAD_IPV4_CKSUM) == 0)
